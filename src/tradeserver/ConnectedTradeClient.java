@@ -74,14 +74,11 @@ public class ConnectedTradeClient implements Runnable {
             while ((komanda = br.readLine()) != null) {
                 
                 if (komanda.startsWith("GET_EXCHANGES")) {
-                   //korisnik zeli razmenu btn
-                   //naci razmenu wip
+                   String razmene = nadjiMoguceRazmene();
+                    pw.println(razmene);
                     System.out.println("Poslate razmene za " + userName);
                 }
-                else if (komanda.startsWith("UPDATE")) {
-                    // obrisane slicice - wip
-                    pw.println("UPDATE_OK");
-                }
+                 
                 else {
                     System.out.println("Nepoznata komanda od " + userName + ": " + komanda);
                 }
@@ -101,7 +98,7 @@ public class ConnectedTradeClient implements Runnable {
         
         
         //doraditi da budu i brojevi random ali wanted<dupes
-        generisiNasumicne(7, 6);  
+        generisiNasumicne(20, 10);  
         
         //saljemo potvru klijetu
         String response = "REG_OK|" + duplikatiToString() + "|" + trazeniToString();
@@ -155,6 +152,61 @@ public class ConnectedTradeClient implements Runnable {
             result += i;  
         }
     }
+    return result;
+}
+    
+     private String nadjiMoguceRazmene() {
+    String result = "EXCHANGES|";
+    boolean trade = false;
+    
+
+    for (int i = 0; i < allClients.size(); i++) {
+        
+        ConnectedTradeClient trenutni = allClients.get(i);
+        
+        // ne gleda sebe
+        if (trenutni.userName.equals(this.userName)) {
+            continue;
+        }
+        
+        String jaDajem = "";
+        String jaDobijam = "";
+        
+        for (int s = 1; s <= 99; s++) {
+            
+            // transmit 
+            if (this.duplikati[s] && trenutni.trazeni[s]) {
+                if (jaDajem.equals("")) {
+                    jaDajem = "" + s;
+                } else {
+                    jaDajem = jaDajem + "," + s;
+                }
+            }
+            
+            // recieve
+            if (this.trazeni[s] && trenutni.duplikati[s]) {
+                if (jaDobijam.equals("")) {
+                    jaDobijam = "" + s;
+                } else {
+                    jaDobijam = jaDobijam + "," + s;
+                }
+            }
+        }
+        
+        // tr i rec
+        if (!jaDajem.equals("") && !jaDobijam.equals("")) {
+            if (trade) {
+                result = result + ";";
+            }
+            result = result + trenutni.userName + "|" + jaDajem + "|" + jaDobijam;
+            trade = true;
+        }
+    }
+    
+    if (!trade) {
+        result = result + "NEMA";
+    }
+    
     return result;
 }
 
