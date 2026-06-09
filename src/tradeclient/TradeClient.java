@@ -50,7 +50,7 @@ public class TradeClient extends JFrame {
         JPanel panelWanted = new JPanel(new GridLayout(10, 10, 5, 5));
         panelWanted.setBorder(BorderFactory.createTitledBorder("SLIČICE KOJE MI TREBAJU"));
         
-        // dupes i wanted
+        // dupes i wanted cbs
         int num = 1;
         while (num < 100) {
             Checkbox cb = new Checkbox(num + "");
@@ -67,6 +67,7 @@ public class TradeClient extends JFrame {
             num++;
         }
         
+        //dodavanje panela sa cb u scroll
         JScrollPane scrollDup = new JScrollPane(panelDuplicates);
         JScrollPane scrollWant = new JScrollPane(panelWanted);
         scrollDup.setPreferredSize(new Dimension(480, 500));
