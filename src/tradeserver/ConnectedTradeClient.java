@@ -31,8 +31,8 @@ public class ConnectedTradeClient implements Runnable {
     private ArrayList<ConnectedTradeClient> allClients;
     
     // slicice
-    private boolean[] duplikati = new boolean[99];
-    private boolean[] trazeni = new boolean[99];
+    private boolean[] duplikati = new boolean[100];
+    private boolean[] trazeni = new boolean[100];
     
       //getters and setters
     public String getUserName() {
@@ -63,31 +63,24 @@ public class ConnectedTradeClient implements Runnable {
             // registracija
             String registracija = br.readLine();
             if (registracija != null && registracija.startsWith("REG|")) {
-                String[] parts = registracija.split("\\|");
-                this.userName = parts[1];
-                
-                // proba
-                String testDuplikati = "4,5,7,89,5,3";
-                String testTrazeni = "22,4,60,23,66";
-                
-                String response = "REG_OK|" + testDuplikati + "|" + testTrazeni;
-                pw.println(response);
-                
-                System.out.println("Registrovan korisnik: " + userName);
-                System.out.println("  Duplikati: " + testDuplikati);
-                System.out.println("  Trazeni: " + testTrazeni);
+                obradiRegistraciju(registracija);
             } else {
                 System.out.println("Nije primljena validna registracija");
                 return;
             }
             
-            // komande
+            // cekaj komandu 
             String komanda;
             while ((komanda = br.readLine()) != null) {
+                
                 if (komanda.startsWith("GET_EXCHANGES")) {
-                    // za sad vraca da nema razmjene
-                    pw.println("EXCHANGES|NEMA");
-                    System.out.println("Korisnik " + userName + " je trazio razmjene - za sad nema");
+                   //korisnik zeli razmenu btn
+                   //naci razmenu wip
+                    System.out.println("Poslate razmene za " + userName);
+                }
+                else if (komanda.startsWith("UPDATE")) {
+                    // obrisane slicice - wip
+                    pw.println("UPDATE_OK");
                 }
                 else {
                     System.out.println("Nepoznata komanda od " + userName + ": " + komanda);
@@ -100,6 +93,70 @@ public class ConnectedTradeClient implements Runnable {
             ukloniKorisnika();
         }
     }
+    
+    private void obradiRegistraciju(String line) {
+        // REG|userName od klijenta
+        String[] parts = line.split("\\|");
+        this.userName = parts[1];
+        
+        
+        //doraditi da budu i brojevi random ali wanted<dupes
+        generisiNasumicne(7, 6);  
+        
+        //saljemo potvru klijetu
+        String response = "REG_OK|" + duplikatiToString() + "|" + trazeniToString();
+        pw.println(response);
+        
+        System.out.println("Ime: " + userName);
+        System.out.println("  Duplikati: " + duplikatiToString());
+        System.out.println("  Trazeni: " + trazeniToString());
+    }
+    
+    private void generisiNasumicne(int brojDuplikata, int brojTrazenih) {
+        Random rand = new Random();
+        duplikati = new boolean[100]; 
+        trazeni = new boolean[100];
+        
+        int dodatoD = 0;
+        while (dodatoD < brojDuplikata) {
+            int broj = rand.nextInt(99) + 1;  
+            if (!duplikati[broj]) {
+                duplikati[broj] = true;
+                dodatoD++;
+            }
+        }
+        
+        int dodatoT = 0;
+        while (dodatoT < brojTrazenih) {
+            int broj = rand.nextInt(99) + 1;
+            if (!duplikati[broj] && !trazeni[broj]) {
+                trazeni[broj] = true;
+                dodatoT++;
+            }
+        }
+    }
+    
+    private String duplikatiToString() {
+    String result = "";
+    for (int i = 1; i <= 99; i++) {
+        if (duplikati[i]) {
+            if (!result.isEmpty()) result += ",";
+            result += i; 
+        }
+    }
+    return result;
+}
+    
+    private String trazeniToString() {
+    String result = "";
+    for (int i = 1; i <= 99; i++) {
+        if (trazeni[i]) {
+            if (!result.isEmpty()) result += ",";
+            result += i;  
+        }
+    }
+    return result;
+}
 
     private void ukloniKorisnika() { //google java remove this user method
         allClients.remove(this);
